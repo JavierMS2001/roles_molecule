@@ -1,0 +1,35 @@
+---
+- name: Create list
+  set_fact:
+    list: "{{ centos_pkgs.split(',') }}"
+  when: centos_pkgs | default("null", false)
+
+- name: Instalar dnf
+  yum:
+    name: dnf
+    state: latest
+  retries: 3
+  delay: 10
+
+- name: Import EPEL GPG key
+  rpm_key:
+    key: "https://dl.fedoraproject.org/pub/epel/RPM-GPG-KEY-EPEL-{{ epel_version }}"
+
+- name: Install EPEL repo
+  dnf:
+    name: "https://dl.fedoraproject.org/pub/epel/epel-release-latest-{{ epel_version }}.noarch.rpm"
+    state: latest
+  retries: 3
+  delay: 10
+
+- name: RedHat - Upgrade all packages, excluding those indicated
+  yum:
+    name: "*"
+    state: latest
+    exclude:
+      - "{{ list }}*"
+
+- debug:
+    msg: "{{ item }} no actualizado."
+  with_items: "{{ list }}"
+  when: centos_pkgs | default("null", false)

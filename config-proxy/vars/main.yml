@@ -1,0 +1,5 @@
+---
+
+rh_wordpress_ip: 10.30.50.12
+deb_wordpress_ip: 10.30.50.12
+deb_proxy_ip: 10.30.50.10

@@ -6,6 +6,7 @@
           state: latest
   retries: 3
   delay: 10
+  register: http
 
 - name: Start Apache
   service:
@@ -19,7 +20,9 @@
           permanent: true
           state: enabled
   register: result
+  when: http is changed
   ignore_errors: true
+
 
 - name: Reload Firewall
   service:
@@ -49,11 +52,11 @@
   reboot:
           reboot_timeout: 30
           post_reboot_delay: 30
-  when: reboot.changed
+  when: reboot is changed
 
 - name: Start Apache
   service:
           name: httpd
           state: started
           enabled: yes
-  when: reboot.changed
+  when: reboot is changed

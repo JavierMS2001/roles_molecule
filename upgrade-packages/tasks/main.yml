@@ -1,0 +1,6 @@
+---
+
+- include_tasks: "{{ ansible_os_family }}.yml"
+
+- include_tasks: reboot.yml
+  when: reboot in "Y, y, yes"
