@@ -9,7 +9,7 @@ platforms:
     registry: false
     ansible_python_interpreter: /usr/bin/python3
     volumes:
-      - /home/$USER/dockers:/usr/local/apache2/htdocs
+      - /home/$USER/dockers:/var/www/html
     published_ports:
       - 8000:80
     docker_networks:
@@ -45,3 +45,6 @@ platforms:
     networks:
       - name: "JaviVerso"
         ipv4_address: '10.30.50.12'
+
+verifier:
+  name: ansible
