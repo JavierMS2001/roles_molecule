@@ -1,0 +1,81 @@
+---
+
+- name: Install MariaDB and others necessary modules
+  apt:
+          name:
+                  - mariadb-server
+                  - python3
+                  - python3-mysqldb
+                  - ufw
+          state: present
+  register: install
+
+- name: Enable UWF
+  ufw:
+          state: enabled
+
+- name: Start mariadb
+  service:
+          name: mariadb
+          enabled: true
+          state: restarted
+  when: install.changed
+
+- name: Use mysql_secure_installation to set password
+  shell: |
+          echo -e "\nn\nY\n{{ db_root_pass }}\n{{ db_root_pass }}\nY\nn\nY\nY\n" | sudo mysql_secure_installation
+  args:
+   executable: /bin/bash
+  when: install.changed
+
+- name: Set mariadb Config
+  template:
+          src: files/50-server.cnf
+          dest: /etc/mysql/mariadb.conf.d/50-server.cnf
+          owner: root
+          group: root
+          mode: '0755'
+  register: config
+
+- name: Restart mariadb
+  service:
+          name: mariadb
+          enabled: true
+          state: restarted
+  when: config.changed
+
+- name: Create database
+  mysql_db:
+          name: "{{ database_name }}"
+          login_user: "{{ db_root_user }}"
+          login_password: "{{ db_root_pass }}"
+          login_host: localhost
+          state: present
+
+- name: Create user to database
+  mysql_user:
+          name: "{{ db_username }}"
+          password: "{{ db_user_pass }}"
+          priv: 'bdwordpress.*:ALL,GRANT'
+          host: '%'
+          login_user: "{{ db_root_user }}"
+          login_password: "{{ db_root_pass }}"
+          login_host: localhost
+          state: present
+
+- name: Enable port 3306 - UFW
+  ufw:
+          rule: allow
+          port: "3306"
+  register: port_3306
+
+- name: Enable port 22 - UFW
+  ufw:
+          rule: allow
+          port: "22"
+  register: port_22
+
+- name: Reload firewall configuration
+  ufw:
+          state: reloaded
+  when: port_3306.changed and port_22.changed
