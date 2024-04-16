@@ -1,0 +1,60 @@
+---
+
+- name: Install required packages
+  yum:
+          name: "{{ item  }}"
+          state: latest
+  loop:
+        - php
+        - php-gd
+        - php-xml
+        - php-mbstring
+        - php-mysqli
+        - php-json
+  register: "packets"
+
+- name: Restart http
+  service:
+          name: httpd
+          state: restarted
+  when: "packets.changed"
+
+- name: Download Wordpress
+  unarchive:
+          src: https://wordpress.org/latest.tar.gz
+          dest: /var/www/html/
+          remote_src: yes
+          owner: apache
+          group: apache
+          mode: '0755'
+
+- name: Enable WordPress Configuration
+  template:
+          src: "files/{{ ansible_os_family }}/wp-config.php"
+          dest: /var/www/html/wordpress/wp-config.php
+          owner: apache
+          group: apache
+          mode: '0644'
+  register: "config"
+
+- name: Disabled SeLinux
+  template:
+          src: files/centos/config
+          dest: /etc/selinux/config
+          owner: root
+          group: root
+          mode: '0644'
+  when: selinux in "Y, y, yes"
+  register: "reboot"  
+
+- name: Reboot server
+  reboot:
+          reboot_timeout: 30
+          post_reboot_delay: 30
+  when: "reboot.changed"
+
+- name: Start http Service
+  service:
+          name: httpd
+          state: restarted
+  when: "config.changed"

@@ -78,4 +78,4 @@
 - name: Reload firewall configuration
   ufw:
           state: reloaded
-  when: port_3306.changed and port_22.changed
+  when: port_3306.changed or port_22.changed
