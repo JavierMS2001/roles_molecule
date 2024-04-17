@@ -5,13 +5,13 @@
 
   - name: Testing proxy is running
     uri:
-      url: http://localhost/
+      url: http://localhost/wordpress
       method: POST
       return_content: yes
     register: test
-    failed_when: test.status != 302
+    failed_when: test.status != 301
     
   - name: Proxy is working!
     debug:
       msg: "Apache reverse proxy is working in {{ ansible_host }}!"
-    when: test.status == 302
+    when: test.status == 301

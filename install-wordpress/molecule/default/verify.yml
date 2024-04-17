@@ -14,9 +14,8 @@
   - name: Wordpress web is working
     uri:
       url: http://localhost/wordpress/
-      method: POST
+      method: GET
     register: web
-    failed_when: web.status != 302
     
   - name: Wordpress is working!
     debug:
