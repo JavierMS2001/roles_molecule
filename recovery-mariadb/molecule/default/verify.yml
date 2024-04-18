@@ -11,7 +11,7 @@
         query: SHOW TABLES
       register: test
 
-    - name: Recovery Role
+    - name: Rol tested
       debug:
         msg: "The database was recovery in {{ ansible_host }}!"
       when: test is success
