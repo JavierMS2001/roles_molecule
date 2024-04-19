@@ -1,0 +1,69 @@
+---
+- name: Install required packages
+  apt:
+          name:
+                  - gnupg
+                  - curl
+                  - pip
+                  - ufw
+          state: present
+  retries: 3
+  delay: 10
+
+- name: Import MongoDB key
+  become: yes
+  apt_key:
+          url: "https://www.mongodb.org/static/pgp/server-{{ deb_mongo_version }}.asc"
+  retries: 3
+  delay: 10
+  ignore_errors: true
+
+
+- name: Add MongoDB repository to sources.list.d
+  become: yes
+  lineinfile:
+    path: "/etc/apt/sources.list.d/mongodb-org-{{ deb_mongo_version }}.list"
+    line: "deb http://repo.mongodb.org/apt/debian buster/mongodb-org/{{ deb_mongo_version }} main"
+    create: yes
+
+- name: Update repositories
+  become: yes
+  apt:
+    update_cache: yes
+  retries: 3
+  delay: 10
+
+
+- name: Install MongoDB
+  apt:
+          name: 
+            - mongodb-org
+            - mongosh
+          state: latest
+  retries: 3
+  delay: 10
+  register: installed
+
+- name: Install PyMongo
+  become: yes
+  pip:
+          name: pymongo
+          state: present
+  retries: 3
+  delay: 10
+
+- name: Start MongoDB Service
+  become: yes
+  service:
+          name: mongod
+          state: started
+          enabled: yes
+
+- name: Create admin user
+  community.mongodb.mongodb_user:
+          database: admin
+          name: "{{ admin_user }}"
+          password: "{{ admin_password }}"
+          state: present
+          roles: ["root"]
+  when: installed.changed
